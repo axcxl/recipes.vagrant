@@ -4,72 +4,52 @@
 # VM for development on ESP devices 
 # Includes libs for ESP12 and ESP32
 
-VMUSER="dev"
 SF="~/."
 ARDUINO_VERS="1.8.10"
 
-#Update the user
-$script_updateuser = <<SCRIPT
-cp -pr /home/vagrant/.ssh /home/#{VMUSER}/
-echo "%#{VMUSER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/#{VMUSER}
-
-addgroup #{VMUSER} tty
-addgroup #{VMUSER} dialout
-addgroup #{VMUSER} vboxsf
-SCRIPT
-
-
-# Install stuff
-#NOTE: firefox link so web browser icon works (it points to this by default)
+# Install stuff - esp tool and Visual Studio Code
 $script_installsw = <<SCRIPT
 apt-get update
 apt-get -y install python-pip
-apt-get -y install python3-pip
-apt-get -y install gnome-system-monitor
-SCRIPT
-
-
-# Install ESP and Arduino utils
-$script_installesp = <<SCRIPT
 pip install esptool
-
-wget --progress=bar:force http://downloads.arduino.cc/arduino-#{ARDUINO_VERS}-linux64.tar.xz -P /home/#{VMUSER}/Downloads
-tar xvf /home/#{VMUSER}/Downloads/arduino-#{ARDUINO_VERS}-linux64.tar.xz -C /home/#{VMUSER}/Downloads
-rm /home/#{VMUSER}/Downloads/arduino-#{ARDUINO_VERS}-linux64.tar.xz
-chown -R #{VMUSER}:#{VMUSER} /home/#{VMUSER}
-su -l #{VMUSER} bash -c "ln -s /home/#{VMUSER}/Downloads/arduino-#{ARDUINO_VERS}/arduino /home/#{VMUSER}/Desktop/Arduino"
-
-su -l #{VMUSER} bash -c "/home/#{VMUSER}/Downloads/arduino-#{ARDUINO_VERS}/arduino --pref \\"boardsmanager.additional.urls=https://dl.espressif.com/dl/package_esp32_index.json,http://arduino.esp8266.com/stable/package_esp8266com_index.json\\" --save-prefs"
-
-su -l #{VMUSER} bash -c "/home/#{VMUSER}/Downloads/arduino-#{ARDUINO_VERS}/arduino --install-boards esp32:esp32 --save-prefs"
-su -l #{VMUSER} bash -c "/home/#{VMUSER}/Downloads/arduino-#{ARDUINO_VERS}/arduino --install-boards esp8266:esp8266 --save-prefs"
-
-su -l #{VMUSER} bash -c "/home/#{VMUSER}/Downloads/arduino-#{ARDUINO_VERS}/arduino --install-library \\"ArduinoJson\\""
-su -l #{VMUSER} bash -c "/home/#{VMUSER}/Downloads/arduino-#{ARDUINO_VERS}/arduino --install-library \\"Adafruit Unified Sensor\\""
-su -l #{VMUSER} bash -c "/home/#{VMUSER}/Downloads/arduino-#{ARDUINO_VERS}/arduino --install-library \\"Adafruit BMP280 Library\\""
-su -l #{VMUSER} bash -c "/home/#{VMUSER}/Downloads/arduino-#{ARDUINO_VERS}/arduino --install-library \\"DHT sensor library\\""
-su -l #{VMUSER} bash -c "/home/#{VMUSER}/Downloads/arduino-#{ARDUINO_VERS}/arduino --install-library \\"M5Stack\\""
-su -l #{VMUSER} bash -c "/home/#{VMUSER}/Downloads/arduino-#{ARDUINO_VERS}/arduino --install-library \\"MQTT\\""
-su -l #{VMUSER} bash -c "/home/#{VMUSER}/Downloads/arduino-#{ARDUINO_VERS}/arduino --install-library \\"NTPClient\\""
-su -l #{VMUSER} bash -c "/home/#{VMUSER}/Downloads/arduino-#{ARDUINO_VERS}/arduino --install-library \\"PubSubClient\\""
 
 wget --progress=bar:force -O vscode.deb https://go.microsoft.com/fwlink/?LinkID=760868
 dpkg -i vscode.deb
 rm vscode.deb
+SCRIPT
 
-su -l #{VMUSER} bash -c "code --install-extension vsciot-vscode.vscode-arduino"
+
+# Install ESP and Arduino utils
+$script_installarduino = <<SCRIPT
+
+wget --progress=bar:force http://downloads.arduino.cc/arduino-#{ARDUINO_VERS}-linux64.tar.xz
+tar xvf -C ~/Downloads
+rm arduino-#{ARDUINO_VERS}-linux64.tar.xz
+
+ln -s ~/Downloads/arduino-#{ARDUINO_VERS}/arduino ~/Desktop/Arduino
+
+~/Desktop/Arduino --pref \\"boardsmanager.additional.urls=https://dl.espressif.com/dl/package_esp32_index.json,http://arduino.esp8266.com/stable/package_esp8266com_index.json\\" --save-prefs
+
+~/Desktop/Arduino --install-boards esp32:esp32 --save-prefs
+~/Desktop/Arduino --install-boards esp8266:esp8266 --save-prefs
+
+~/Desktop/Arduino --install-library \\"ArduinoJson\\"
+~/Desktop/Arduino --install-library \\"Adafruit Unified Sensor\\"
+~/Desktop/Arduino --install-library \\"Adafruit BMP280 Library\\"
+~/Desktop/Arduino --install-library \\"DHT sensor library\\"
+~/Desktop/Arduino --install-library \\"M5Stack\\"
+~/Desktop/Arduino --install-library \\"MQTT\\"
+~/Desktop/Arduino --install-library \\"NTPClient\\"
+~/Desktop/Arduino --install-library \\"PubSubClient\\"
+
+
+code --install-extension vsciot-vscode.vscode-arduino
 SCRIPT
 
 
 Vagrant.configure("2") do |config|
 
-    #Make sure we do not login using the 'vagrant' user
-    VAGRANT_COMMAND = ARGV[0]
-    if VAGRANT_COMMAND == "ssh"
-          config.ssh.username = VMUSER
-    end
-
-    config.vm.box = "axcxl/debian9_xfce"
+    config.vm.box = "axcxl/debian11_xfce"
 
     config.vm.provider :virtualbox do |vb|
         vb.gui = true
@@ -81,17 +61,14 @@ Vagrant.configure("2") do |config|
 
         machine.vm.hostname = 'devesp'
 
-        # Create the additional user
-        machine.vm.provision "shell", inline: $script_updateuser 
-
         # Install SW
         machine.vm.provision "shell", inline: $script_installsw
 
         # Install ESP dev tools
-        machine.vm.provision "shell", inline: $script_installesp
+        machine.vm.provision "shell", inline: $script_installarduino, privileged: false
     end
 
-    config.vm.synced_folder "#{SF}", "/home/#{VMUSER}/workspace", group: "vboxsf", mount_options: ["dmode=775,fmode=664"]
+    config.vm.synced_folder "#{SF}", "/home/vagrant/workspace", group: "vboxsf", mount_options: ["dmode=775,fmode=664"]
 
 end
 
