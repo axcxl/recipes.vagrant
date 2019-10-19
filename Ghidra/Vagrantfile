@@ -3,51 +3,40 @@
 #
 # VM for reverse engineering with Ghidra
 
-VMUSER="dev"
 SF="."
 
-#Update the user
-$script_updateuser = <<SCRIPT
-cp -pr /home/vagrant/.ssh /home/#{VMUSER}/
-echo "%#{VMUSER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/#{VMUSER}
-
-addgroup #{VMUSER} tty
-addgroup #{VMUSER} dialout
-addgroup #{VMUSER} vboxsf
-SCRIPT
-
 #Install stuff
+#NOTE: not sure why java needs ln on Debian 11, but it works
 $script_installsw = <<SCRIPT
 apt-get update
-apt-get -y install python3-pip binwalk
-apt-get -y install gnome-system-monitor
+
+apt-get -y install binwalk
 apt-get -y install bvi
-apt-get -y install unzip
 
 wget --progress=bar:force --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" "https://download.oracle.com/otn-pub/java/jdk/13+33/5b8a42f3905b406298b72d750b6919f6/jdk-13_linux-x64_bin.deb"
 dpkg -i jdk-13_linux-x64_bin.deb
+rm jdk-*.deb
 
-wget --progress=bar:force https://ghidra-sre.org/ghidra_9.1-BETA_DEV_20190923.zip -P /home/#{VMUSER}/Downloads
-unzip /home/#{VMUSER}/Downloads/ghidra*.zip -d /home/#{VMUSER}
-ln -s /home/#{VMUSER}/ghidra*/ghidraRun /home/#{VMUSER}/Desktop/ghidra
-
-chown -R #{VMUSER}:#{VMUSER} /home/#{VMUSER}
+ln -s /usr/lib/jvm/jdk-13/bin/* /usr/bin/
 
 DEBIAN_FRONTEND=noninteractive apt-get -y install wireshark
 echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
 sudo DEBIAN_FRONTEND=noninteractive dpkg-reconfigure wireshark-common
-addgroup #{VMUSER} wireshark
+addgroup vagrant wireshark
+SCRIPT
+
+# Install Ghidra
+$script_installgh = <<SCRIPT
+wget --progress=bar:force https://ghidra-sre.org/ghidra_9.1-BETA_DEV_20190923.zip
+unzip ghidra*.zip -d ~/Downloads
+rm ghidra*.zip
+
+ln -s ~/Downloads/ghidra*/ghidraRun ~/Desktop/Ghidra
 SCRIPT
 
 Vagrant.configure("2") do |config|
 
-    #Make sure we do not login using the 'vagrant' user
-    VAGRANT_COMMAND = ARGV[0]
-    if VAGRANT_COMMAND == "ssh"
-          config.ssh.username = VMUSER
-    end
-
-    config.vm.box = "axcxl/debian9_xfce"
+    config.vm.box = "axcxl/debian11_xfce"
 
     config.vm.provider :virtualbox do |vb|
         vb.gui = true
@@ -55,19 +44,18 @@ Vagrant.configure("2") do |config|
         vb.cpus = 8
     end
 
-    config.vm.synced_folder "#{SF}", "/home/#{VMUSER}/workspace", group: "vboxsf", owner: "#{VMUSER}"
-
     config.vm.define "ghidra" do |machine|
 
-        machine.vm.hostname = 'relb'
-
-        # Install SW
-        machine.vm.provision "shell", inline: $script_updateuser
+        machine.vm.hostname = 'ghidra'
 
         # Install SW
         machine.vm.provision "shell", inline: $script_installsw
+
+        # Ghidra
+        machine.vm.provision "shell", inline: $script_installgh, privileged: false
     end
 
+    config.vm.synced_folder "#{SF}", "/home/vagrant/workspace"
 
 end
 
