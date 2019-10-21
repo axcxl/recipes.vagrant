@@ -1,0 +1,84 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+#
+# VM for working Hexiwear and ZephyrOS 
+
+SF="."
+S2N="
+2010:telnet:600:/dev/ttyACM0:115200 8DATABITS NONE 1STOPBIT banner
+2011:telnet:600:/dev/ttyACM1:115200 8DATABITS NONE 1STOPBIT banner
+"
+
+#Install stuff
+$script_installsw = <<SCRIPT
+apt-get update
+apt-get -y install python-pip
+apt-get -y install ser2net
+apt-get -y install --no-install-recommends git cmake ninja-build gperf \
+  ccache dfu-util device-tree-compiler wget \
+  python3-pip python3-setuptools python3-tk python3-wheel xz-utils file \
+  make gcc gcc-multilib
+SCRIPT
+
+# Install Zephyr DEV ENV
+$script_installz = <<SCRIPT
+
+pip install --pre -U https://github.com/mbedmicro/pyOCD/archive/master.zip
+
+pip3 install --user -U west
+echo 'export PATH=$PATH:/home/vagrant/.local/bin' >> /home/vagrant/.bashrc
+
+west init zephyrproject
+cd zephyrproject
+west update
+
+pip3 install --user -r zephyrproject/zephyr/scripts/requirements.txt
+
+wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.10.3/zephyr-sdk-0.10.3-setup.run
+chmod u+x zephyr-*.run
+./zephyr-sdk-0.10.3-setup.run -- -d ~/zephyr-sdk-0.10.3
+
+echo 'export ZEPHYR_TOOLCHAIN_VARIANT=zephyr' >> /home/vagrant/.bashrc
+echo 'export ZEPHYR_SDK_INSTALL_DIR=$HOME/zephyr-sdk-0.10.3' >> /home/vagrant/.bashrc
+SCRIPT
+
+# Update the ser2net config
+$script_configser2net = <<SCRIPT
+head -n -4 /etc/ser2net.conf > /etc/ser2net.conf.new
+mv /etc/ser2net.conf /etc/ser2net.conf.old
+mv /etc/ser2net.conf.new /etc/ser2net.conf
+echo "#{S2N}" >> /etc/ser2net.conf
+service ser2net stop
+service ser2net start
+SCRIPT
+
+
+Vagrant.configure("2") do |config|
+
+    config.vm.box = "axcxl/debian11_xfce"
+    config.disksize.size = '40GB'
+
+    config.vm.provider :virtualbox do |vb|
+        vb.gui = true
+        vb.memory = 8192
+        vb.cpus = 4
+    end
+
+    config.vm.define "hexiwear" do |machine|
+
+        machine.vm.hostname = 'hexiwear'
+
+        # Install SW
+        machine.vm.provision "shell", inline: $script_installsw
+
+        # Zephyr
+        machine.vm.provision "shell", inline: $script_installz, privileged: false
+
+	# configure ser2net
+        machine.vm.provision "shell", inline: $script_configser2net
+    end
+
+    config.vm.synced_folder "#{SF}", "/home/vagrant/workspace"
+
+end
+
