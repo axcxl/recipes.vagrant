@@ -37,7 +37,7 @@ west update
 cd ..
 pip3 install --user -r zephyrproject/zephyr/scripts/requirements.txt
 
-wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.10.3/zephyr-sdk-0.10.3-setup.run
+wget --progress=bar:force https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.10.3/zephyr-sdk-0.10.3-setup.run
 chmod u+x zephyr-*.run
 ./zephyr-sdk-0.10.3-setup.run -- -d ~/zephyr-sdk-0.10.3
 
