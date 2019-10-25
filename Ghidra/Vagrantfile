@@ -3,7 +3,7 @@
 #
 # VM for reverse engineering with Ghidra
 
-SF="."
+SF="~/workspace"
 
 #Install stuff
 #NOTE: not sure why java needs ln on Debian 11, but it works

@@ -9,7 +9,7 @@
 VMRAM = ENV["RAM"] || "8192"
 VMCPU = ENV["CPU"] || "4"
 
-SF="."
+SF="~/workspace"
 S2N="
 2010:telnet:600:/dev/ttyACM0:115200 8DATABITS NONE 1STOPBIT banner
 2011:telnet:600:/dev/ttyACM1:115200 8DATABITS NONE 1STOPBIT banner

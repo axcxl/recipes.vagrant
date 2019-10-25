@@ -4,7 +4,7 @@
 # VM for development on ESP devices 
 # Includes libs for ESP12 and ESP32
 
-SF="~/."
+SF="~/workspace"
 ARDUINO_VERS="1.8.10"
 
 # Install stuff - esp tool and Visual Studio Code
