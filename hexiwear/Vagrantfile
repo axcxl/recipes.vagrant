@@ -28,6 +28,8 @@ $script_installz = <<SCRIPT
 pip install --pre -U pyOCD
 
 pip3 install --user -U west
+
+export PATH=$PATH:/home/vagrant/.local/bin
 echo 'export PATH=$PATH:/home/vagrant/.local/bin' >> /home/vagrant/.bashrc
 
 west init zephyrproject
