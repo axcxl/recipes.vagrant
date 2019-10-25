@@ -25,7 +25,7 @@ SCRIPT
 # Install Zephyr DEV ENV
 $script_installz = <<SCRIPT
 
-pip install --pre -U https://github.com/mbedmicro/pyOCD/archive/master.zip
+pip install --pre -U pyOCD
 
 pip3 install --user -U west
 echo 'export PATH=$PATH:/home/vagrant/.local/bin' >> /home/vagrant/.bashrc
