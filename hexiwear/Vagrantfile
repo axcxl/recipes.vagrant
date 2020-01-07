@@ -34,10 +34,11 @@ SCRIPT
 
 # Install Zephyr DEV ENV
 # NOTE: remove the following commands because this should be in the workspace
-#- west init zephyrproject
-#- cd zephyrproject
-#- west update
-#- cd ..
+# To install:
+# mkdir zephyrproject somewhere
+# git clone zephyr in zephyrproject
+# go to zephyrproject -> west init -l zephyr
+# still in zephyrproject -> west update
 $script_installz = <<SCRIPT
 
 pip install --pre -U pyOCD
