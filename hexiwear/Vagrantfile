@@ -47,7 +47,7 @@ pip3 install --user -U west
 export PATH=$PATH:/home/vagrant/.local/bin
 echo 'export PATH=$PATH:/home/vagrant/.local/bin' >> /home/vagrant/.bashrc
 
-pip3 install --user -r zephyrproject/zephyr/scripts/requirements.txt
+pip3 install --user -r /home/vagrant/workspace/HEXIWEAR/zephyrproject/zephyr/scripts/requirements.txt
 
 wget --progress=bar:force https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.10.3/zephyr-sdk-0.10.3-setup.run
 chmod u+x zephyr-*.run
@@ -64,6 +64,7 @@ mv /etc/ser2net.conf /etc/ser2net.conf.old
 mv /etc/ser2net.conf.new /etc/ser2net.conf
 echo "#{S2N}" >> /etc/ser2net.conf
 service ser2net stop
+sleep 1
 service ser2net start
 SCRIPT
 
