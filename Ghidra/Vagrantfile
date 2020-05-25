@@ -13,11 +13,11 @@ apt-get update
 apt-get -y install binwalk
 apt-get -y install bvi
 
-wget --progress=bar:force --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" "https://download.oracle.com/otn-pub/java/jdk/13+33/5b8a42f3905b406298b72d750b6919f6/jdk-13_linux-x64_bin.deb"
-dpkg -i jdk-13_linux-x64_bin.deb
+wget --progress=bar:force --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" "https://download.oracle.com/otn-pub/java/jdk/14.0.1+7/664493ef4a6946b186ff29eb326336a2/jdk-14.0.1_linux-x64_bin.deb"
+dpkg -i jdk-*.deb
 rm jdk-*.deb
 
-ln -s /usr/lib/jvm/jdk-13/bin/* /usr/bin/
+ln -s /usr/lib/jvm/jdk-*/bin/* /usr/bin/
 
 DEBIAN_FRONTEND=noninteractive apt-get -y install wireshark
 echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
@@ -27,7 +27,7 @@ SCRIPT
 
 # Install Ghidra
 $script_installgh = <<SCRIPT
-wget --progress=bar:force https://ghidra-sre.org/ghidra_9.1-BETA_DEV_20190923.zip
+wget --progress=bar:force https://ghidra-sre.org/ghidra_9.1.2_PUBLIC_20200212.zip
 unzip ghidra*.zip -d ~/Downloads
 rm ghidra*.zip
 
@@ -36,7 +36,7 @@ SCRIPT
 
 Vagrant.configure("2") do |config|
 
-    config.vm.box = "axcxl/debian11_xfce"
+    config.vm.box = "axcxl/debian11_kde"
 
     config.vm.provider :virtualbox do |vb|
         vb.gui = true
