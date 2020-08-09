@@ -10,6 +10,7 @@ VMRAM = ENV["RAM"] || "8192"
 VMCPU = ENV["CPU"] || "4"
 
 SF="~/workspace"
+ZEPHYR_SDK="0.11.3"
 S2N="
 2010:telnet:600:/dev/ttyACM0:115200 8DATABITS NONE 1STOPBIT banner
 2011:telnet:600:/dev/ttyACM1:115200 8DATABITS NONE 1STOPBIT banner
@@ -50,12 +51,12 @@ echo 'export PATH=$PATH:/home/vagrant/.local/bin' >> /home/vagrant/.bashrc
 
 pip3 install --user -r /home/vagrant/workspace/HEXIWEAR/zephyrproject/zephyr/scripts/requirements.txt
 
-wget --progress=bar:force https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.10.3/zephyr-sdk-0.10.3-setup.run
+wget --progress=bar:force https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v#{ZEPHYR_SDK}/zephyr-sdk-#{ZEPHYR_SDK}-setup.run
 chmod u+x zephyr-*.run
-./zephyr-sdk-0.10.3-setup.run -- -d ~/zephyr-sdk-0.10.3
+./zephyr-sdk-#{ZEPHYR_SDK}-setup.run -- -d ~/zephyr-sdk-#{ZEPHYR_SDK}
 
 echo 'export ZEPHYR_TOOLCHAIN_VARIANT=zephyr' >> /home/vagrant/.bashrc
-echo 'export ZEPHYR_SDK_INSTALL_DIR=$HOME/zephyr-sdk-0.10.3' >> /home/vagrant/.bashrc
+echo 'export ZEPHYR_SDK_INSTALL_DIR=$HOME/zephyr-sdk-#{ZEPHYR_SDK}' >> /home/vagrant/.bashrc
 SCRIPT
 
 # Update the ser2net config
